@@ -1,10 +1,50 @@
 services:
   crucix:
     build: .
+    image: crucix:local
     ports:
-      - "${PORT:-3117}:${PORT:-3117}"
-    env_file:
-      - .env
+      - "${PORT:-3117}:3117"
+    environment:
+      # --- Server ---
+      - PORT=${PORT:-3117}
+      - REFRESH_INTERVAL_MINUTES=${REFRESH_INTERVAL_MINUTES:-15}
+
+      # --- Free API keys (highly recommended) ---
+      - FRED_API_KEY=${FRED_API_KEY:-}
+      - FIRMS_MAP_KEY=${FIRMS_MAP_KEY:-}
+      - EIA_API_KEY=${EIA_API_KEY:-}
+
+      # --- Optional sources ---
+      - ACLED_EMAIL=${ACLED_EMAIL:-}
+      - ACLED_PASSWORD=${ACLED_PASSWORD:-}
+      - AISSTREAM_API_KEY=${AISSTREAM_API_KEY:-}
+      - ADSB_API_KEY=${ADSB_API_KEY:-}
+
+      # --- LLM (optional) ---
+      - LLM_PROVIDER=${LLM_PROVIDER:-}
+      - LLM_API_KEY=${LLM_API_KEY:-}
+      - LLM_MODEL=${LLM_MODEL:-}
+
+      # --- Telegram (optional) ---
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN:-}
+      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID:-}
+      - TELEGRAM_CHANNELS=${TELEGRAM_CHANNELS:-}
+      - TELEGRAM_POLL_INTERVAL=${TELEGRAM_POLL_INTERVAL:-5000}
+
+      # --- Discord (optional) ---
+      - DISCORD_BOT_TOKEN=${DISCORD_BOT_TOKEN:-}
+      - DISCORD_CHANNEL_ID=${DISCORD_CHANNEL_ID:-}
+      - DISCORD_GUILD_ID=${DISCORD_GUILD_ID:-}
+      - DISCORD_WEBHOOK_URL=${DISCORD_WEBHOOK_URL:-}
+
     volumes:
-      - ./runs:/app/runs
+      - crucix_runs:/app/runs
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3117/api/health"]
+      interval: 2m
+      timeout: 10s
+      retries: 3
+
+volumes:
+  crucix_runs:
